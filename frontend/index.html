@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Memory Game - Space Theme</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="game-controls">
+      <button id="restart-btn" class="hidden">🚀 Restart Mission</button>
+    </div>
+    <div class="game-info">
+      <p class="info-block">
+        <span class="label">🚀 Reveals:</span>
+        <span id="reveal-count">0</span>
+      </p>
+      <p class="info-block">
+        <span class="label">⏱ Time:</span>
+        <span id="timer">0</span>s
+      </p>
+    </div>
+
+    <div id="game-board"></div>
+    <div id="popup" class="popup hidden">
+      <div class="popup-content">
+        <h2 id="popup-message"></h2>
+        <p class="popup-sub">Ready for another cosmic challenge?</p>
+        <button id="close-popup">🚀 Play Again</button>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
