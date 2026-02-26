@@ -30,12 +30,24 @@ db.serialize(() => {
     level INTEGER NOT NULL
   )
 `);
+
   /*db.all(
     "SELECT sql FROM sqlite_master WHERE type='table' AND name='cards'",
     (err, row) => {
       console.log(row);
     },
   );*/
+
+  db.run(`
+  CREATE TABLE IF NOT EXISTS scores (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    level INTEGER NOT NULL,
+    time INTEGER NOT NULL
+  )
+`);
+
   // Step 1: Check if 'level' column exists
   db.all("PRAGMA table_info(cards)", (err, columns) => {
     if (err) {
@@ -135,17 +147,64 @@ app.get("/api/cards", (req, res) => {
   const level = parseInt(req.query.level);
   const limit = parseInt(req.query.limit);
 
+  if (isNaN(level) || isNaN(limit)) {
+    return res.status(400).json({ error: "Invalid query parameters" });
+  }
+
   db.all(
     "SELECT * FROM cards WHERE level = ? LIMIT ?",
     [level, limit],
     (err, rows) => {
       if (err) {
-        res.status(500).json({ error: err.message });
-        return;
+        console.error("Database Fetch Error:", err.message);
+        return res.status(500).json({ error: "Failed to fetch cards" });
       }
+
       res.json(rows);
     },
   );
+});
+
+//API to Save Score
+
+app.post("/api/save-score", (req, res) => {
+  try {
+    const { player, score, level, time } = req.body;
+    if (!player || typeof player !== "string") {
+      return res.status(400).json({ error: "Invalid Player Name" });
+    }
+    if (
+      typeof score !== "number" ||
+      typeof level !== "number" ||
+      typeof time !== "number"
+    ) {
+      return res.status(400).json({ error: "Invalid Score Data" });
+    }
+
+    db.run(
+      `INSERT INTO scores (player,score,level,time) VALUES(?, ?, ?, ?)`,
+      [player, score, level, time],
+      function (err) {
+        if (err) {
+          console.error("Database Insert Error:", err.message);
+          return res
+            .status(500)
+            .json({ error: "Failed to save score", details: err.message });
+        }
+        res.json({ message: "Score Saved!", id: this.lastID });
+      },
+    );
+  } catch (error) {
+    console.error("Unexpected server error:", error);
+    res.status(500).json({ error: "Something went wrong on the server" });
+  }
+});
+
+app.use((err, req, res, next) => {
+  console.error("Unhandled Error:", err.stack);
+  res.status(500).json({
+    error: "Internal Server Error",
+  });
 });
 
 const PORT = 3000;

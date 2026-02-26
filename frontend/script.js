@@ -177,11 +177,35 @@ function startTimer() {
     }
   }, 1000);
 }
-function checkForWin() {
+async function checkForWin() {
   const matchedCards = document.querySelectorAll(".card.matched");
   if (matchedCards.length === cards.length * 2) {
     clearInterval(timerInterval);
     score = (timeLimit - timer) * 10 - revealCount * 2;
+
+    const playerName = prompt("Enter your name:");
+
+    await fetch("http://localhost:3000/api/save-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        player: playerName,
+        score: score,
+        level: level,
+        time: timer,
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to save score");
+        }
+        return res.json();
+      })
+      .catch((err) => {
+        console.error("Save Score Error:", err);
+        alert("Error Saving Score.Try again.");
+      });
+
     showPopup(`🌟 Stellar Memory! 
 You conquered space in ${timer}s 
 with ${revealCount} reveals!\nYou scored: ${score}`);
