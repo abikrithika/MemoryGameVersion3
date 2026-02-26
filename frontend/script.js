@@ -8,7 +8,12 @@ let timerInterval = null;
 let gameStarted = false;
 
 const FLIP_BACK_DELAY = 1500;
-const TIME_LIMIT = 60;
+
+const LEVELS = {
+  1: { pairs: 6, time: 50, columns: 4 }, // 12 cards
+  2: { pairs: 8, time: 70, columns: 4 }, // 16 cards
+  3: { pairs: 10, time: 100, columns: 5 }, // 20 cards
+};
 
 const revealDisplay = document.getElementById("reveal-count");
 const timerDisplay = document.getElementById("timer");
@@ -21,6 +26,9 @@ const closePopup = document.getElementById("close-popup");
 
 let cards = [];
 let idCounter = 1;
+
+let level = 1;
+let timeLimit = LEVELS[level].time;
 
 closePopup.addEventListener("click", () => {
   popup.classList.add("hidden");
@@ -35,13 +43,20 @@ function shuffleCards(array) {
 }
 const board = document.getElementById("game-board");
 
-fetch("http://localhost:3000/api/cards")
-  .then((res) => res.json())
-  .then((data) => {
-    cards = data;
-    startGame();
-  })
-  .catch((err) => console.error("Error fetching cards:", err));
+function fetchCardsAndStart() {
+  const pairs = LEVELS[level].pairs;
+  timeLimit = LEVELS[level].time;
+
+  fetch(`http://localhost:3000/api/cards?level=${level}&limit=${pairs}`)
+    .then((res) => res.json())
+    .then((data) => {
+      cards = data;
+      updateGrid();
+      restartGame();
+    })
+    .catch((err) => console.error("Error fetching cards:", err));
+}
+fetchCardsAndStart();
 
 function startGame() {
   clearBoard();
@@ -154,7 +169,8 @@ function startTimer() {
   timerInterval = setInterval(() => {
     timer++;
     timerDisplay.textContent = timer;
-    if (timer >= TIME_LIMIT) {
+
+    if (timer >= timeLimit) {
       clearInterval(timerInterval);
       lockBoard = true;
       showPopup("⏰ Mission Failed! The galaxy slipped away this time...");
@@ -196,3 +212,19 @@ function clearBoard() {
     board.removeChild(board.firstChild);
   }
 }
+function updateGrid() {
+  const columns = LEVELS[level].columns;
+  board.style.gridTemplateColumns = `repeat(${columns}, 100px)`;
+}
+document.querySelectorAll(".level-controls button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll(".level-controls button")
+      .forEach((b) => b.classList.remove("active"));
+
+    btn.classList.add("active");
+
+    level = parseInt(btn.dataset.level);
+    fetchCardsAndStart();
+  });
+});

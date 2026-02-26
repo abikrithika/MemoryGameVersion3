@@ -1,0 +1,13 @@
+# Node modules
+node_modules/
+backend/node_modules/
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+#Database
+backend/cards.db
