@@ -6,7 +6,7 @@ let revealCount = 0;
 let timer = 0;
 let timerInterval = null;
 let gameStarted = false;
-
+let score = 0;
 const FLIP_BACK_DELAY = 1500;
 
 const LEVELS = {
@@ -181,9 +181,10 @@ function checkForWin() {
   const matchedCards = document.querySelectorAll(".card.matched");
   if (matchedCards.length === cards.length * 2) {
     clearInterval(timerInterval);
+    score = (timeLimit - timer) * 10 - revealCount * 2;
     showPopup(`🌟 Stellar Memory! 
 You conquered space in ${timer}s 
-with ${revealCount} reveals!`);
+with ${revealCount} reveals!\nYou scored: ${score}`);
   }
 }
 function restartGame() {

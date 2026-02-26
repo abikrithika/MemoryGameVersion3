@@ -30,12 +30,12 @@ db.serialize(() => {
     level INTEGER NOT NULL
   )
 `);
-  db.all(
+  /*db.all(
     "SELECT sql FROM sqlite_master WHERE type='table' AND name='cards'",
     (err, row) => {
       console.log(row);
     },
-  );
+  );*/
   // Step 1: Check if 'level' column exists
   db.all("PRAGMA table_info(cards)", (err, columns) => {
     if (err) {
@@ -95,16 +95,22 @@ db.serialize(() => {
     { name: "MilkyWay", image: "images/milkyway.jpg", level: 3 },
   ];
   function assignLevels() {
-    // Easy → first 6 cards
-    db.run(`UPDATE cards SET level = 1 WHERE id BETWEEN 1 AND 6`);
+    db.all("SELECT id, level FROM cards ORDER BY id", (err, rows) => {
+      if (err) return console.error(err.message);
 
-    // Medium → next 4 cards
-    db.run(`UPDATE cards SET level = 2 WHERE id BETWEEN 7 AND 10`);
+      let levelCounts = { 1: 6, 2: 8, 3: 10 };
+      let idx = 0;
 
-    // Hard → last 2 cards
-    db.run(`UPDATE cards SET level = 3 WHERE id BETWEEN 11 AND 12`);
-
-    console.log("Levels assigned successfully.");
+      for (let level = 1; level <= 3; level++) {
+        const count = levelCounts[level];
+        for (let i = 0; i < count && idx < rows.length; i++, idx++) {
+          db.run(`UPDATE cards SET level = ? WHERE id = ?`, [
+            level,
+            rows[idx].id,
+          ]);
+        }
+      }
+    });
   }
 
   db.get("SELECT COUNT(*) as count FROM cards", (err, row) => {
