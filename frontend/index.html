@@ -37,11 +37,22 @@
     </div>
 
     <div id="game-board"></div>
+
     <div id="popup" class="popup hidden">
       <div class="popup-content">
-        <h2 id="popup-message"></h2>
-        <p class="popup-sub">Ready for another cosmic challenge?</p>
-        <button id="close-popup">🚀 Play Again</button>
+        <p id="popup-message"></p>
+        <button id="popup-close">Close</button>
+      </div>
+    </div>
+
+    <div id="score-modal" class="popup hidden">
+      <div class="popup-content score-box">
+        <h2>🌌 Mission Complete!</h2>
+        <p id="final-score-text"></p>
+
+        <input type="text" id="player-name" placeholder="Enter Your Name" />
+
+        <button id="save-score-btn">🚀 Save Score</button>
       </div>
     </div>
     <script src="script.js"></script>

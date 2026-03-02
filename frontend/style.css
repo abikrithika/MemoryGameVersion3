@@ -305,6 +305,54 @@ body {
   transform: scale(1.1);
   box-shadow: 0 0 15px #00d4ff;
 }
+/* Success popup */
+.popup.success .popup-content {
+  border: 2px solid #00ffcc;
+  box-shadow: 0 0 20px #00ffcc;
+}
+
+/* Error popup */
+.popup.error .popup-content {
+  border: 2px solid #ff4d4d;
+  box-shadow: 0 0 20px #ff4d4d;
+}
+
+/* Score Modal Input */
+.score-box input {
+  width: 100%;
+  padding: 10px;
+  margin: 15px 0;
+  border-radius: 25px;
+  border: 2px solid #00eaff;
+  background: rgba(0, 0, 40, 0.7);
+  color: #fff;
+  text-align: center;
+  font-family: "Orbitron", sans-serif;
+  outline: none;
+  transition: 0.3s ease;
+}
+
+.score-box input:focus {
+  box-shadow: 0 0 15px #00eaff;
+}
+
+/* Save Button */
+#save-score-btn {
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(45deg, #00ffcc, #00bfff);
+  color: #0b0f2a;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease;
+  font-family: "Orbitron", sans-serif;
+}
+
+#save-score-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #00ffcc;
+}
 
 /* Animations */
 

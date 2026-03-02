@@ -22,7 +22,7 @@ const restartBtn = document.getElementById("restart-btn");
 
 const popup = document.getElementById("popup");
 const popupMessage = document.getElementById("popup-message");
-const closePopup = document.getElementById("close-popup");
+const popupClose = document.getElementById("popup-close");
 
 let cards = [];
 let idCounter = 1;
@@ -30,7 +30,12 @@ let idCounter = 1;
 let level = 1;
 let timeLimit = LEVELS[level].time;
 
-closePopup.addEventListener("click", () => {
+const scoreModal = document.getElementById("score-modal");
+const finalScoreText = document.getElementById("final-score-text");
+const saveScoreBtn = document.getElementById("save-score-btn");
+const playerNameInput = document.getElementById("player-name");
+
+popupClose.addEventListener("click", () => {
   popup.classList.add("hidden");
   restartGame();
 });
@@ -48,13 +53,27 @@ function fetchCardsAndStart() {
   timeLimit = LEVELS[level].time;
 
   fetch(`http://localhost:3000/api/cards?level=${level}&limit=${pairs}`)
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch cards");
+      }
+      return res.json();
+    })
     .then((data) => {
+      if (!data || data.length === 0) {
+        console.error("No cards returned from API");
+        showPopup("⚠️ No cards found for this level!", "error");
+        return;
+      }
+
       cards = data;
       updateGrid();
       restartGame();
     })
-    .catch((err) => console.error("Error fetching cards:", err));
+    .catch((err) => {
+      console.error("Error fetching cards:", err);
+      showPopup("⚠️ Failed to load cards!", "error");
+    });
 }
 fetchCardsAndStart();
 
@@ -177,38 +196,18 @@ function startTimer() {
     }
   }, 1000);
 }
-async function checkForWin() {
+function checkForWin() {
   const matchedCards = document.querySelectorAll(".card.matched");
+
   if (matchedCards.length === cards.length * 2) {
     clearInterval(timerInterval);
-    score = (timeLimit - timer) * 10 - revealCount * 2;
 
-    const playerName = prompt("Enter your name:");
+    const efficiency = cards.length / revealCount;
+    score = Math.floor((timeLimit - timer) * 10 * efficiency);
 
-    await fetch("http://localhost:3000/api/save-score", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        player: playerName,
-        score: score,
-        level: level,
-        time: timer,
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to save score");
-        }
-        return res.json();
-      })
-      .catch((err) => {
-        console.error("Save Score Error:", err);
-        alert("Error Saving Score.Try again.");
-      });
+    finalScoreText.textContent = `Time: ${timer}s | Reveals: ${revealCount} | Score: ${score}`;
 
-    showPopup(`🌟 Stellar Memory! 
-You conquered space in ${timer}s 
-with ${revealCount} reveals!\nYou scored: ${score}`);
+    scoreModal.classList.remove("hidden");
   }
 }
 function restartGame() {
@@ -227,10 +226,61 @@ function restartGame() {
 
   startGame();
 }
-function showPopup(message) {
+function showPopup(message, type = "info") {
   popupMessage.textContent = message;
+
   popup.classList.remove("hidden");
+
+  // Remove previous type styles
+  popup.classList.remove("success", "error");
+
+  // Add new type style
+  if (type === "success") {
+    popup.classList.add("success");
+  }
+
+  if (type === "error") {
+    popup.classList.add("error");
+  }
 }
+
+popupClose.addEventListener("click", () => {
+  popup.classList.add("hidden");
+});
+
+saveScoreBtn.addEventListener("click", async () => {
+  const playerName = playerNameInput.value.trim();
+
+  if (!playerName) {
+    showPopup("⚠️ Please enter your astronaut name!", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:3000/api/save-score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        player: playerName,
+        score: score,
+        level: level,
+        time: timer,
+      }),
+    });
+
+    if (!res.ok) throw new Error("Failed to save score");
+
+    await res.json();
+
+    scoreModal.classList.add("hidden");
+    playerNameInput.value = "";
+
+    showPopup("🚀 Score Saved Successfully!", "success");
+  } catch (err) {
+    console.error("Save Score Error:", err);
+    showPopup("⚠️ Error Saving Score. Try again.", "error");
+  }
+});
 
 function clearBoard() {
   while (board.firstChild) {
