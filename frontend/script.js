@@ -35,6 +35,9 @@ const finalScoreText = document.getElementById("final-score-text");
 const saveScoreBtn = document.getElementById("save-score-btn");
 const playerNameInput = document.getElementById("player-name");
 
+const leaderboardBtn = document.getElementById("leaderboard-btn");
+const leaderboardContainer = document.getElementById("leaderboard");
+
 popupClose.addEventListener("click", () => {
   popup.classList.add("hidden");
   restartGame();
@@ -302,4 +305,47 @@ document.querySelectorAll(".level-controls button").forEach((btn) => {
     level = parseInt(btn.dataset.level);
     fetchCardsAndStart();
   });
+});
+
+leaderboardBtn.addEventListener("click", async () => {
+  try {
+    // Toggle visibility first
+    leaderboardContainer.classList.toggle("active");
+
+    // If already visible, just close it
+    if (!leaderboardContainer.classList.contains("active")) {
+      return;
+    }
+
+    const res = await fetch("http://localhost:3000/api/leaderboard");
+
+    if (!res.ok) throw new Error("Failed to fetch leaderboard");
+
+    const data = await res.json();
+
+    while (leaderboardContainer.firstChild) {
+      leaderboardContainer.removeChild(leaderboardContainer.firstChild);
+    }
+
+    const title = document.createElement("h3");
+    title.textContent = "🏆 Top 10 Players";
+    leaderboardContainer.appendChild(title);
+
+    if (data.length === 0) {
+      const empty = document.createElement("p");
+      empty.textContent = "No scores yet!";
+      leaderboardContainer.appendChild(empty);
+    } else {
+      data.forEach((player, index) => {
+        const row = document.createElement("p");
+        row.textContent =
+          `${index + 1}. ${player.player} - ${player.score} pts (Level ${player.level})`;
+        leaderboardContainer.appendChild(row);
+      });
+    }
+
+  } catch (err) {
+    console.error("Leaderboard Error:", err);
+    showPopup("⚠️ Could not load leaderboard", "error");
+  }
 });
